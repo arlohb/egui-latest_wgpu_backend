@@ -1,11 +1,14 @@
 [package]
 name = "egui-latest_wgpu_backend"
 version = "0.18.0"
-authors = ["Nils Hasenbanck <nils@hasenbanck.de>"]
+authors = [
+    "Nils Hasenbanck <nils@hasenbanck.de>",
+    "Arlo Blythe <arlo@urwick.co.uk>"
+]
 edition = "2021"
 description = "Backend code to use egui with wgpu."
-homepage = "https://github.com/hasenbanck/egui_wgpu_backend"
-repository = "https://github.com/hasenbanck/egui_wgpu_backend"
+homepage = "https://github.com/arlohb/egui-latest_wgpu_backend"
+repository = "https://github.com/arlohb/egui-latest_wgpu_backend"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 

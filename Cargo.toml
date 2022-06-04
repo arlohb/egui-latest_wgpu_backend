@@ -9,6 +9,9 @@ repository = "https://github.com/hasenbanck/egui_wgpu_backend"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 
+[[example]]
+name = "demo"
+
 [features]
 default = []
 web = []
@@ -17,3 +20,12 @@ web = []
 egui = { version = "0.18.1", features = ["bytemuck"] }
 wgpu = "0.12"
 bytemuck = "1.7"
+
+[dev-dependencies]
+egui = "0.18.1"
+egui_demo_lib = "0.18.0"
+egui-winit = "0.18.0"
+
+wgpu = "0.12"
+winit = "0.26"
+pollster = "0.2"

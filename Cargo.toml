@@ -1,5 +1,5 @@
 [package]
-name = "egui_wgpu_backend"
+name = "egui-latest_wgpu_backend"
 version = "0.18.0"
 authors = ["Nils Hasenbanck <nils@hasenbanck.de>"]
 edition = "2021"

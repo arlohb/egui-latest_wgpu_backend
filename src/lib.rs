@@ -267,7 +267,7 @@ impl RenderPass {
         &self,
         encoder: &mut wgpu::CommandEncoder,
         color_attachment: &wgpu::TextureView,
-        paint_jobs: &[egui::epaint::ClippedMesh],
+        paint_jobs: &[egui::epaint::ClippedPrimitive],
         screen_descriptor: &ScreenDescriptor,
         clear_color: Option<wgpu::Color>,
     ) -> Result<(), BackendError> {
@@ -302,7 +302,7 @@ impl RenderPass {
     pub fn execute_with_renderpass<'rpass>(
         &'rpass self,
         rpass: &mut wgpu::RenderPass<'rpass>,
-        paint_jobs: &[egui::epaint::ClippedMesh],
+        paint_jobs: &[egui::epaint::ClippedPrimitive],
         screen_descriptor: &ScreenDescriptor,
     ) -> Result<(), BackendError> {
         rpass.set_pipeline(&self.render_pipeline);
@@ -313,51 +313,60 @@ impl RenderPass {
         let physical_width = screen_descriptor.physical_width;
         let physical_height = screen_descriptor.physical_height;
 
-        for ((egui::ClippedMesh(clip_rect, mesh), vertex_buffer), index_buffer) in paint_jobs
+        for ((
+            egui::ClippedPrimitive {
+                clip_rect,
+                primitive: mesh,
+            },
+            vertex_buffer),
+            index_buffer,
+        ) in paint_jobs
             .iter()
             .zip(self.vertex_buffers.iter())
             .zip(self.index_buffers.iter())
         {
-            // Transform clip rect to physical pixels.
-            let clip_min_x = scale_factor * clip_rect.min.x;
-            let clip_min_y = scale_factor * clip_rect.min.y;
-            let clip_max_x = scale_factor * clip_rect.max.x;
-            let clip_max_y = scale_factor * clip_rect.max.y;
+            if let egui::epaint::Primitive::Mesh(mesh) = mesh {
+                // Transform clip rect to physical pixels.
+                let clip_min_x = scale_factor * clip_rect.min.x;
+                let clip_min_y = scale_factor * clip_rect.min.y;
+                let clip_max_x = scale_factor * clip_rect.max.x;
+                let clip_max_y = scale_factor * clip_rect.max.y;
 
-            // Make sure clip rect can fit within an `u32`.
-            let clip_min_x = clip_min_x.clamp(0.0, physical_width as f32);
-            let clip_min_y = clip_min_y.clamp(0.0, physical_height as f32);
-            let clip_max_x = clip_max_x.clamp(clip_min_x, physical_width as f32);
-            let clip_max_y = clip_max_y.clamp(clip_min_y, physical_height as f32);
+                // Make sure clip rect can fit within an `u32`.
+                let clip_min_x = clip_min_x.clamp(0.0, physical_width as f32);
+                let clip_min_y = clip_min_y.clamp(0.0, physical_height as f32);
+                let clip_max_x = clip_max_x.clamp(clip_min_x, physical_width as f32);
+                let clip_max_y = clip_max_y.clamp(clip_min_y, physical_height as f32);
 
-            let clip_min_x = clip_min_x.round() as u32;
-            let clip_min_y = clip_min_y.round() as u32;
-            let clip_max_x = clip_max_x.round() as u32;
-            let clip_max_y = clip_max_y.round() as u32;
+                let clip_min_x = clip_min_x.round() as u32;
+                let clip_min_y = clip_min_y.round() as u32;
+                let clip_max_x = clip_max_x.round() as u32;
+                let clip_max_y = clip_max_y.round() as u32;
 
-            let width = (clip_max_x - clip_min_x).max(1);
-            let height = (clip_max_y - clip_min_y).max(1);
+                let width = (clip_max_x - clip_min_x).max(1);
+                let height = (clip_max_y - clip_min_y).max(1);
 
-            {
-                // Clip scissor rectangle to target size.
-                let x = clip_min_x.min(physical_width);
-                let y = clip_min_y.min(physical_height);
-                let width = width.min(physical_width - x);
-                let height = height.min(physical_height - y);
+                {
+                    // Clip scissor rectangle to target size.
+                    let x = clip_min_x.min(physical_width);
+                    let y = clip_min_y.min(physical_height);
+                    let width = width.min(physical_width - x);
+                    let height = height.min(physical_height - y);
 
-                // Skip rendering with zero-sized clip areas.
-                if width == 0 || height == 0 {
-                    continue;
+                    // Skip rendering with zero-sized clip areas.
+                    if width == 0 || height == 0 {
+                        continue;
+                    }
+
+                    rpass.set_scissor_rect(x, y, width, height);
                 }
+                let bind_group = self.get_texture_bind_group(mesh.texture_id)?;
+                rpass.set_bind_group(1, bind_group, &[]);
 
-                rpass.set_scissor_rect(x, y, width, height);
+                rpass.set_index_buffer(index_buffer.buffer.slice(..), wgpu::IndexFormat::Uint32);
+                rpass.set_vertex_buffer(0, vertex_buffer.buffer.slice(..));
+                rpass.draw_indexed(0..mesh.indices.len() as u32, 0, 0..1);
             }
-            let bind_group = self.get_texture_bind_group(mesh.texture_id)?;
-            rpass.set_bind_group(1, bind_group, &[]);
-
-            rpass.set_index_buffer(index_buffer.buffer.slice(..), wgpu::IndexFormat::Uint32);
-            rpass.set_vertex_buffer(0, vertex_buffer.buffer.slice(..));
-            rpass.draw_indexed(0..mesh.indices.len() as u32, 0, 0..1);
         }
 
         Ok(())
@@ -396,12 +405,12 @@ impl RenderPass {
 
             let alpha_srgb_pixels: Option<Vec<_>> = match &image_delta.image {
                 egui::ImageData::Color(_) => None,
-                egui::ImageData::Alpha(a) => Some(a.srgba_pixels(1.0).collect()),
+                egui::ImageData::Font(a) => Some(a.srgba_pixels(1.0).collect()),
             };
 
             let image_data: &[u8] = match &image_delta.image {
                 egui::ImageData::Color(c) => bytemuck::cast_slice(c.pixels.as_slice()),
-                egui::ImageData::Alpha(_) => {
+                egui::ImageData::Font(_) => {
                     // The unwrap here should never fail as alpha_srgb_pixels will have been set to
                     // `Some` above.
                     bytemuck::cast_slice(
@@ -676,7 +685,7 @@ impl RenderPass {
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        paint_jobs: &[egui::epaint::ClippedMesh],
+        paint_jobs: &[egui::epaint::ClippedPrimitive],
         screen_descriptor: &ScreenDescriptor,
     ) {
         let index_size = self.index_buffers.len();
@@ -695,37 +704,45 @@ impl RenderPass {
             }]),
         );
 
-        for (i, egui::ClippedMesh(_, mesh)) in paint_jobs.iter().enumerate() {
-            let data: &[u8] = bytemuck::cast_slice(&mesh.indices);
-            if i < index_size {
-                self.update_buffer(device, queue, BufferType::Index, i, data)
-            } else {
-                let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("egui_index_buffer"),
-                    contents: data,
-                    usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
-                });
-                self.index_buffers.push(SizedBuffer {
-                    buffer,
-                    size: data.len(),
-                });
-            }
+        for (
+            i,
+            egui::ClippedPrimitive {
+                clip_rect: _,
+                primitive: mesh,
+            },
+        ) in paint_jobs.iter().enumerate() {
+            if let egui::epaint::Primitive::Mesh(mesh) = mesh {
+                let data: &[u8] = bytemuck::cast_slice(&mesh.indices);
+                if i < index_size {
+                    self.update_buffer(device, queue, BufferType::Index, i, data)
+                } else {
+                    let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("egui_index_buffer"),
+                        contents: data,
+                        usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+                    });
+                    self.index_buffers.push(SizedBuffer {
+                        buffer,
+                        size: data.len(),
+                    });
+                }
 
-            let data: &[u8] = bytemuck::cast_slice(&mesh.vertices);
-            if i < vertex_size {
-                self.update_buffer(device, queue, BufferType::Vertex, i, data)
-            } else {
-                let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("egui_vertex_buffer"),
-                    contents: data,
-                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-                });
+                let data: &[u8] = bytemuck::cast_slice(&mesh.vertices);
+                if i < vertex_size {
+                    self.update_buffer(device, queue, BufferType::Vertex, i, data)
+                } else {
+                    let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("egui_vertex_buffer"),
+                        contents: data,
+                        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    });
 
-                self.vertex_buffers.push(SizedBuffer {
-                    buffer,
-                    size: data.len(),
-                });
-            }
+                    self.vertex_buffers.push(SizedBuffer {
+                        buffer,
+                        size: data.len(),
+                    });
+                }
+            };
         }
     }
 

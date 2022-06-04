@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.18.0] - 2022-06-04
+
+This project was forked from [egui_wgpu_backend](https://github.com/hasenbanck/egui_wgpu_backend)
+
 ### Updated
 - Target egui 0.18
 

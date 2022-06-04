@@ -1,7 +1,7 @@
 # egui-latest_wgpu_backend
 
-[![Latest version](https://img.shields.io/crates/v/egui_wgpu_backend.svg)](https://crates.io/crates/egui_wgpu_backend)
-[![Documentation](https://docs.rs/egui_wgpu_backend/badge.svg)](https://docs.rs/egui_wgpu_backend)
+[![Latest version](https://img.shields.io/crates/v/egui-latest_wgpu_backend.svg)](https://crates.io/crates/egui-latest_wgpu_backend)
+[![Documentation](https://docs.rs/egui-latest_wgpu_backend/badge.svg)](https://docs.rs/egui-latest_wgpu_backend)
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Apache](https://img.shields.io/badge/license-Apache-blue.svg)
 

@@ -4,6 +4,8 @@
 //! A basic usage example can be found [here](https://github.com/hasenbanck/egui_example).
 #![warn(missing_docs)]
 
+#![allow(clippy::too_many_arguments)]
+
 use std::{
     borrow::Cow,
     collections::{hash_map::Entry, HashMap},
@@ -439,7 +441,7 @@ impl RenderPass {
                 egui::TextureId::User(u) => format!("egui_user_image_{}", u),
             };
 
-            match self.textures.entry(texture_id.clone()) {
+            match self.textures.entry(*texture_id) {
                 Entry::Occupied(mut o) => match image_delta.pos {
                     None => {
                         let (texture, bind_group) = create_texture_and_bind_group(
@@ -828,7 +830,7 @@ fn create_texture_and_bind_group(
 
     let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some(format!("{}_texture_bind_group", label_base).as_str()),
-        layout: &texture_bind_group_layout,
+        layout: texture_bind_group_layout,
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,

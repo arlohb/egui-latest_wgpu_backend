@@ -1,7 +1,6 @@
 //! A render backend to use [egui](https://github.com/emilk/egui) with [wgpu](https://github.com/gfx-rs/wgpu-rs).
 //!
-//! You need to create a [`RenderPass`] and feed it with the output data provided by egui.
-//! A basic usage example can be found [here](https://github.com/hasenbanck/egui_example).
+//! An example is included to show how to use this crate.
 #![warn(missing_docs)]
 
 #![allow(clippy::too_many_arguments)]

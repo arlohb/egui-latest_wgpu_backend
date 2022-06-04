@@ -1,6 +1,6 @@
 [package]
 name = "egui-latest_wgpu_backend"
-version = "0.18.0"
+version = "0.18.1"
 authors = [
     "Nils Hasenbanck <nils@hasenbanck.de>",
     "Arlo Blythe <arlo@urwick.co.uk>"

@@ -66,7 +66,8 @@ fn main() {
     .unwrap();
 
     let size = window.inner_size();
-    let surface_format = surface.get_preferred_format(&adapter).unwrap();
+    let surface_format = surface.get_supported_formats(&adapter)[0];
+    println!("surface_formats: {:?}", surface.get_supported_formats(&adapter));
     let mut surface_config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         format: surface_format,

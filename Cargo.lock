@@ -424,7 +424,7 @@ dependencies = [
 
 [[package]]
 name = "egui-latest_wgpu_backend"
-version = "0.18.2"
+version = "0.18.3"
 dependencies = [
  "bytemuck",
  "egui",

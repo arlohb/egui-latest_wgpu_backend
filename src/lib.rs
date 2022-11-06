@@ -2,7 +2,6 @@
 //!
 //! An example is included to show how to use this crate.
 #![warn(missing_docs)]
-
 #![allow(clippy::too_many_arguments)]
 
 use std::{
@@ -314,12 +313,14 @@ impl RenderPass {
         let physical_width = screen_descriptor.physical_width;
         let physical_height = screen_descriptor.physical_height;
 
-        for ((
-            egui::ClippedPrimitive {
-                clip_rect,
-                primitive: mesh,
-            },
-            vertex_buffer),
+        for (
+            (
+                egui::ClippedPrimitive {
+                    clip_rect,
+                    primitive: mesh,
+                },
+                vertex_buffer,
+            ),
             index_buffer,
         ) in paint_jobs
             .iter()
@@ -711,7 +712,8 @@ impl RenderPass {
                 clip_rect: _,
                 primitive: mesh,
             },
-        ) in paint_jobs.iter().enumerate() {
+        ) in paint_jobs.iter().enumerate()
+        {
             if let egui::epaint::Primitive::Mesh(mesh) = mesh {
                 let data: &[u8] = bytemuck::cast_slice(&mesh.indices);
                 if i < index_size {

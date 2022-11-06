@@ -23,6 +23,7 @@
 
 // For more information, please refer to [http://unlicense.org]
 
+use egui_winit::winit;
 
 use egui_latest_wgpu_backend::{RenderPass, ScreenDescriptor};
 use winit::event::Event::*;
@@ -67,18 +68,22 @@ fn main() {
 
     let size = window.inner_size();
     let surface_format = surface.get_supported_formats(&adapter)[0];
-    println!("surface_formats: {:?}", surface.get_supported_formats(&adapter));
+    println!(
+        "surface_formats: {:?}",
+        surface.get_supported_formats(&adapter)
+    );
     let mut surface_config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         format: surface_format,
         width: size.width as u32,
         height: size.height as u32,
         present_mode: wgpu::PresentMode::Mailbox,
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
     };
     surface.configure(&device, &surface_config);
 
     // We use the `egui-winit` crate to handle integration with wgpu, and create the runtime context
-    let mut state = egui_winit::State::new(4096, &window);
+    let mut state = egui_winit::State::new(&event_loop);
     let context = egui::Context::default();
 
     // We use the egui_wgpu_backend crate as the render backend.

@@ -1,6 +1,6 @@
 [package]
 name = "egui-latest_wgpu_backend"
-version = "0.18.3"
+version = "0.19.0"
 authors = [
     "Nils Hasenbanck <nils@hasenbanck.de>",
     "Arlo Blythe <arlo@urwick.co.uk>"
@@ -20,15 +20,14 @@ default = []
 web = []
 
 [dependencies]
-egui = { version = "0.18.1", features = ["bytemuck"] }
-wgpu = "0.13"
+egui = { version = "0.19.0", features = ["bytemuck"] }
+wgpu = "0.14"
 bytemuck = "1.7"
 
 [dev-dependencies]
-egui = "0.18.1"
-egui_demo_lib = "0.18.0"
-egui-winit = "0.18.0"
+egui = "0.19.0"
+egui_demo_lib = "0.19.0"
+egui-winit = "0.19.0"
 
-wgpu = "0.13"
-winit = "0.26"
+wgpu = "0.14"
 pollster = "0.2"
